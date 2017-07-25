@@ -1,40 +1,40 @@
-'use strict';
-
 import gulp from 'gulp';
-import nodemon from 'gulp-nodemon';
-import babel from 'gulp-babel';
+import webpack from 'webpack';
+import gwebpack from 'webpack-stream';
+import webpackClientConfig from './config/webpack-client.config.babel';
+import webpackServerConfig from './config/webpack-server.config.babel';
+import gnodemon from 'gulp-nodemon';
 
-/* ========== CLIENT TASKS ========== */
-
-gulp.task('build', function () {
-    return gulp.src('src/*.js')
-        .pipe(babel({
-            presets: ['es2015']
-        }))
-        .pipe(gulp.dest('dist/src'));
-});
-
-gulp.task('watch', function () {
-  gulp.watch('src/*.js', ['build']);
-});
-
-gulp.task('dev', ['build', 'watch']);
-
-/* ========== SERVER TASKS ========== */
-
-gulp.task('babel-server', function () {
-    gulp.src('www/server.js')
-        .pipe(babel({
-            presets: ['es2015']
-        }))
+gulp.task('server-build', function () {
+    return gulp.src(['www/**/*.js'])
+        .pipe(gwebpack(webpackServerConfig, webpack))
         .pipe(gulp.dest('dist/www/'));
+});
+    
+gulp.task('client-build', function () {
+    return gulp.src(['public/**/*.js'])
+        .pipe(gwebpack(webpackClientConfig, webpack))
+        .pipe(gulp.dest('dist/public/'));
+});
+
+gulp.task('build', ['server-build', 'client-build'], function () { return; });
+
+gulp.task('client-watch', function () {
+    return gulp.watch('public/**/*', ['client-build']);
+});
+
+gulp.task('watch', ['client-watch'], function () { return; });
+
+gulp.task('server-start', ['watch', 'build'],function () {
+    return gnodemon({
+        script: 'dist/www/server.bundle.js',
+        env: { 'NODE_ENV': 'development' },
+        tasks: ['server-build'],
+        watch: 'www/**/*'
+    })
+    .on('restart', function () {
+      console.log('Server has restarted!');
+    });
 })
 
-gulp.task('server', ['babel-server'], function () {
-    nodemon({
-        script: 'dist/www/server.js', 
-        env: { 'NODE_ENV': 'development' },
-        tasks: ['babel-server'],
-        watch: ['www/', 'node_modules']
-    });
-});
+gulp.task('default', ['server-start']);
