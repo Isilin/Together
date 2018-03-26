@@ -33,7 +33,7 @@ server.use('/', index);
 server.use('/api/facebook', facebook);
 server.use('/api/twitter', twitter);
 
-server.get('*', function readFile(req, res) {
+server.get('*', function (req, res) {
     fs.readFile(path.join(__dirname, '..', 'public', 'index.html'), function (err, html) {
         if(err) {
                 throw err;
@@ -41,7 +41,7 @@ server.get('*', function readFile(req, res) {
             res.status(200).send(template({'body': html}));
         }
     });
-})
+});
 
 server.use(function (req, res, next) {
         var err = new Error('Not found');

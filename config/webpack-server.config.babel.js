@@ -1,16 +1,18 @@
 import path from 'path';
+import webpack from 'webpack';
 import CleanWebpackPlugin from 'clean-webpack-plugin';
-import UglifyJSPlugin from 'uglifyjs-webpack-plugin';
 
 export default {
     profile: true,
     target: 'node',
     context: path.join(__dirname, '..'),
+    devtool: 'source-map',
     node: {
         __filename: false,
         __dirname: false
     },
     entry: {
+        polyfill: ['babel-core/register', 'babel-polyfill'],
         server: path.join(__dirname, '..', 'www', 'app.js')
     },
     output: {
@@ -40,7 +42,7 @@ export default {
                 use: ['file-loader']
             },
             {
-                test: /\.js$/,
+                test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
                 use: ['babel-loader']
             },
@@ -53,6 +55,8 @@ export default {
     },
     plugins: [
         new CleanWebpackPlugin(['dist/www']),
-        new UglifyJSPlugin()
+        new webpack.optimize.UglifyJsPlugin({
+            sourceMap: true
+        })
     ]
 };

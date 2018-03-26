@@ -2,14 +2,15 @@ import path from 'path';
 import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CleanWebpackPlugin from 'clean-webpack-plugin';
-import UglifyJSPlugin from 'uglifyjs-webpack-plugin';
 
 export default {
     profile: true,
     target: 'node',
     context: path.join(__dirname, '..'),
+    devtool: 'source-map',
     entry: {
-        client: path.join(__dirname, '..', 'public', 'index.js')
+        polyfill: ['babel-core/register', 'babel-polyfill'],
+        client: path.join(__dirname, '..', 'public', 'index.jsx')
     },
     output: {
         filename: '[name].bundle.js',
@@ -33,7 +34,7 @@ export default {
                 use: ['file-loader']
             },
             {
-                test: /\.js$/,
+                test: /\.(js|jsx)$/,
                 exclude: /node_modules/,
                 use: ['babel-loader']
             }
@@ -55,7 +56,9 @@ export default {
                 useShortDoctype: true
             }
         }),
-        new UglifyJSPlugin(),
+        new webpack.optimize.UglifyJsPlugin({
+            sourceMap: true
+        }),
         new webpack.DefinePlugin({
             "process.env": {
                 NODE_ENV: JSON.stringify("production")
